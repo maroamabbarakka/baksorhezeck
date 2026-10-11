@@ -25,6 +25,7 @@ Owner dapat mengganti PIN semua akun. Manager dapat mengganti PIN Manager dan Ka
 - Pengaturan profil outlet dan pajak.
 - Preview dan cetak struk 58/80 mm.
 - Pairing printer melalui Web Bluetooth dan fallback dialog cetak browser.
+- Akses operasional printer untuk Owner, Manager, dan Kasir.
 - Cetak langsung ESC/POS melalui BLE GATT tanpa membuka PDF.
 - Restore binding printer, reconnect saat mencetak, dan deteksi koneksi putus.
 - Auto print setelah pembayaran.
@@ -79,6 +80,8 @@ Jalur utama adalah **Web Bluetooth BLE** pada Chrome/Edge melalui HTTPS. Alur pe
 Pada kunjungan berikutnya, aplikasi mencoba memulihkan perangkat melalui permission browser. Pastikan printer menyala dan Bluetooth aktif. Tombol **Cetak melalui browser** sengaja dipertahankan sebagai fallback dan memang dapat menampilkan tujuan Save as PDF.
 
 Web Bluetooth hanya bekerja pada printer yang mengekspos BLE GATT writable characteristic. Printer Bluetooth Classic/SPP yang tidak mempunyai BLE tidak dapat dicetak langsung dari browser dan membutuhkan aplikasi native, Web Serial, atau driver sistem.
+
+Safari/WebKit pada iPhone dan iPad tidak menyediakan Web Bluetooth. Pada perangkat Apple, gunakan **Cetak melalui browser** dengan printer yang mendukung AirPrint, atau gunakan aplikasi native/bridge printer untuk koneksi Bluetooth langsung. Binding dan izin Bluetooth selalu disimpan lokal pada masing-masing perangkat; data perangkat printer tidak disinkronkan karena izin perangkat keras harus diberikan oleh pengguna pada browser tersebut.
 
 ## Struktur utama
 

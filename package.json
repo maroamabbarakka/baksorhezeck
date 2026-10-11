@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "node scripts/e2e-smoke.mjs",
+    "test:e2e:cashier-printer": "node scripts/e2e-cashier-printer.mjs",
     "test:e2e:mobile": "node scripts/e2e-mobile-layout.mjs",
     "test:e2e:responsive": "node scripts/e2e-responsive-audit.mjs",
     "test:e2e:sync": "node scripts/e2e-realtime-sync.mjs",
