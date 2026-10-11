@@ -77,6 +77,7 @@ function CashierPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash')
   const [received, setReceived] = useState(0)
   const [success, setSuccess] = useState<Order | null>(null)
+  const [mobileCart, setMobileCart] = useState(false)
   const categories = ['Semua', ...new Set(data.products.filter(product => product.active).map(product => product.category))]
   const products = data.products.filter(product => product.active && (category === 'Semua' || product.category === category) && `${product.name} ${product.sku}`.toLowerCase().includes(query.toLowerCase()))
   const totals = calculateTotals(cart, discount, data.settings)
@@ -86,7 +87,7 @@ function CashierPage() {
     return found ? current.map(item => item.id === product.id ? { ...item, qty: item.qty + 1 } : item) : [...current, { ...product, qty: 1 }]
   })
   const qty = (id: string, change: number) => setCart(current => current.map(item => item.id === id ? { ...item, qty: item.qty + change } : item).filter(item => item.qty > 0))
-  const reset = () => { setCart([]); setDiscount(0); setPaymentOpen(false); setReceived(0); setPaymentMethod('cash') }
+  const reset = () => { setCart([]); setDiscount(0); setPaymentOpen(false); setReceived(0); setPaymentMethod('cash'); setMobileCart(false) }
   const pay = () => {
     const amountReceived = paymentMethod === 'cash' ? received : totals.total
     if (paymentMethod === 'cash' && amountReceived < totals.total) return
@@ -103,8 +104,11 @@ function CashierPage() {
       <div className="catalog-tools"><label className="search"><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Cari menu atau SKU..." /></label><div className="chips">{categories.map(item => <button key={item} className={category === item ? 'active' : ''} onClick={() => setCategory(item)}>{item}</button>)}</div></div>
       <div className="product-grid">{products.map(product => <button className="product-card" key={product.id} onClick={() => add(product)}><img src={product.image} alt={product.name} /><span className="add-badge">+</span><div><small>{product.category}</small><strong>{product.name}</strong><b>{rupiah(product.price)}</b></div></button>)}</div>
       {!products.length && <Empty title="Menu tidak ditemukan" detail="Ubah kata pencarian atau kategori." />}
+      <button className="mobile-cart-trigger" disabled={!cart.length} onClick={() => setMobileCart(true)}><span>▤</span><b>Lihat Pesanan</b><i>{cart.reduce((sum, item) => sum + item.qty, 0)}</i><strong>{rupiah(totals.total)}</strong></button>
     </section>
-    <aside className="cart-panel">
+    <button className={`cart-backdrop ${mobileCart ? 'open' : ''}`} onClick={() => setMobileCart(false)} aria-label="Tutup keranjang" />
+    <aside className={`cart-panel ${mobileCart ? 'mobile-open' : ''}`}>
+      <button className="mobile-cart-close" onClick={() => setMobileCart(false)} aria-label="Tutup keranjang">×</button>
       <div className="panel-heading"><div><h2>Pesanan</h2><p>{cart.reduce((sum, item) => sum + item.qty, 0)} item</p></div>{cart.length > 0 && <button className="text-danger" onClick={() => setCart([])}>Kosongkan</button>}</div>
       <div className="cart-items">{cart.map(item => <div className="cart-item" key={item.id}><img src={item.image} alt="" /><div><strong>{item.name}</strong><span>{rupiah(item.price)}</span><div className="qty"><button onClick={() => qty(item.id, -1)}>−</button><b>{item.qty}</b><button onClick={() => qty(item.id, 1)}>+</button></div></div><b>{rupiah(item.price * item.qty)}</b></div>)}{!cart.length && <Empty title="Keranjang masih kosong" detail="Pilih menu untuk menambahkan pesanan." />}</div>
       <div className="cart-totals"><label><span>Diskon</span><div className="money-field"><span>Rp</span><input type="number" min="0" max={totals.subtotal} value={discount || ''} onChange={event => setDiscount(Number(event.target.value) || 0)} placeholder="0" /></div></label><div><span>Subtotal</span><b>{rupiah(totals.subtotal)}</b></div>{totals.discount > 0 && <div><span>Diskon</span><b>−{rupiah(totals.discount)}</b></div>}{totals.tax > 0 && <div><span>Pajak {data.settings.taxPercent}%</span><b>{rupiah(totals.tax)}</b></div>}<div className="grand-total"><span>Total</span><b>{rupiah(totals.total)}</b></div><button className="button primary full pay-button" disabled={!cart.length} onClick={() => { setReceived(totals.total); setPaymentOpen(true) }}>Bayar</button></div>

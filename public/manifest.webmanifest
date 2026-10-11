@@ -3,7 +3,11 @@
   "short_name": "Bakso Umum",
   "description": "Aplikasi kasir internal Bakso Umum Khas Makassar",
   "start_url": "/",
+  "id": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
+  "categories": ["business", "productivity"],
   "background_color": "#f6f5f2",
   "theme_color": "#431f12",
   "icons": [

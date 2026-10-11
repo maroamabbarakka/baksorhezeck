@@ -30,6 +30,8 @@ Owner dapat mengganti PIN semua akun. Manager dapat mengganti PIN Manager dan Ka
 - Backup seluruh data menjadi JSON.
 - Pemulihan data dari file backup JSON.
 - Layout responsif untuk komputer, tablet, dan telepon.
+- PWA installable dengan service worker, cache aset, dan fallback offline.
+- Keranjang mobile berbentuk bottom drawer agar katalog tidak terpotong atau memanjang.
 
 ## Menjalankan aplikasi
 
