@@ -11,7 +11,14 @@ createRoot(document.getElementById('root')!).render(
 )
 
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  const hadController = Boolean(navigator.serviceWorker.controller)
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(error => console.error('Service worker gagal didaftarkan:', error))
+    navigator.serviceWorker.register('/sw.js').then(registration => registration.update()).catch(error => console.error('Service worker gagal didaftarkan:', error))
+  })
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && !sessionStorage.getItem('pwa-update-reload')) {
+      sessionStorage.setItem('pwa-update-reload', '1')
+      window.location.reload()
+    }
   })
 }

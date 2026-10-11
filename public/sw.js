@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bakso-umum-v1'
+const CACHE_NAME = 'bakso-umum-v3'
 const CORE_ASSETS = ['/', '/index.html', '/manifest.webmanifest', '/brand/logo.webp', '/offline.html']
 
 self.addEventListener('install', event => {

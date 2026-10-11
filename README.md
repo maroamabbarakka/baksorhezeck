@@ -69,7 +69,7 @@ Jalur utama adalah **Web Bluetooth BLE** pada Chrome/Edge melalui HTTPS. Alur pe
 1. Buka **Printer → Hubungkan Bluetooth**.
 2. Pilih printer thermal.
 3. Aplikasi menyambungkan GATT, mencari service dan writable characteristic, lalu menyimpan binding lokal.
-4. Tekan **Test cetak Bluetooth**. Test ini mengirim byte ESC/POS langsung dan tidak membuka PDF.
+4. Tekan **Test cetak Bluetooth**. Test ini mencetak format struk lengkap—logo raster, identitas outlet, tiga produk contoh, subtotal, total, pembayaran, kembalian, dan footer—langsung melalui ESC/POS tanpa membuka PDF.
 
 Pada kunjungan berikutnya, aplikasi mencoba memulihkan perangkat melalui permission browser. Pastikan printer menyala dan Bluetooth aktif. Tombol **Cetak melalui browser** sengaja dipertahankan sebagai fallback dan memang dapat menampilkan tujuan Save as PDF.
 
