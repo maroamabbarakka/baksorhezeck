@@ -25,6 +25,8 @@ Owner dapat mengganti PIN semua akun. Manager dapat mengganti PIN Manager dan Ka
 - Pengaturan profil outlet dan pajak.
 - Preview dan cetak struk 58/80 mm.
 - Pairing printer melalui Web Bluetooth dan fallback dialog cetak browser.
+- Cetak langsung ESC/POS melalui BLE GATT tanpa membuka PDF.
+- Restore binding printer, reconnect saat mencetak, dan deteksi koneksi putus.
 - Auto print setelah pembayaran.
 - Laporan harian, mingguan, bulanan, dan grafik tujuh hari.
 - Backup seluruh data menjadi JSON.
@@ -59,6 +61,19 @@ Gunakan menu **Pengaturan → Unduh backup** secara berkala. Menghapus data situ
 ## Firebase
 
 Konfigurasi Firebase dibaca dari `.env`. Salin `.env.example` menjadi `.env` pada instalasi baru. Modul tersedia di `src/lib/firebase.ts`, tetapi sinkronisasi cloud belum diaktifkan pada versi internal awal ini.
+
+## Printer thermal
+
+Jalur utama adalah **Web Bluetooth BLE** pada Chrome/Edge melalui HTTPS. Alur pertama kali:
+
+1. Buka **Printer → Hubungkan Bluetooth**.
+2. Pilih printer thermal.
+3. Aplikasi menyambungkan GATT, mencari service dan writable characteristic, lalu menyimpan binding lokal.
+4. Tekan **Test cetak Bluetooth**. Test ini mengirim byte ESC/POS langsung dan tidak membuka PDF.
+
+Pada kunjungan berikutnya, aplikasi mencoba memulihkan perangkat melalui permission browser. Pastikan printer menyala dan Bluetooth aktif. Tombol **Cetak melalui browser** sengaja dipertahankan sebagai fallback dan memang dapat menampilkan tujuan Save as PDF.
+
+Web Bluetooth hanya bekerja pada printer yang mengekspos BLE GATT writable characteristic. Printer Bluetooth Classic/SPP yang tidak mempunyai BLE tidak dapat dicetak langsung dari browser dan membutuhkan aplikasi native, Web Serial, atau driver sistem.
 
 ## Struktur utama
 
