@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /pos_products/{document=**} { allow read, write: if true; }
+    match /pos_orders/{document=**} { allow read, write: if true; }
+    match /pos_users/{document=**} { allow read, write: if true; }
+    match /pos_config/{document=**} { allow read, write: if true; }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

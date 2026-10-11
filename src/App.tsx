@@ -65,8 +65,8 @@ function Sidebar({ page, setPage, mobileOpen, close }: { page: PageKey; setPage:
 }
 
 function Topbar({ title, openMenu }: { title: string; openMenu: () => void }) {
-  const { currentUser } = usePosStore()
-  return <header className="topbar"><button className="menu-button" onClick={openMenu}>☰</button><div><h1>{title}</h1><p>{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}</p></div><div className="top-user"><span className="status-dot" />{currentUser!.name}</div></header>
+  const { currentUser, syncStatus } = usePosStore()
+  return <header className="topbar"><button className="menu-button" onClick={openMenu}>☰</button><div><h1>{title}</h1><p>{new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())}</p></div><div className={`cloud-status ${syncStatus.phase}`} title={syncStatus.message} data-testid="cloud-status"><span />{syncStatus.phase === 'synced' ? 'Cloud aktif' : syncStatus.phase === 'offline' ? 'Offline' : syncStatus.phase === 'error' ? 'Sync gagal' : 'Sinkronisasi'}</div><div className="top-user">{currentUser!.name}</div></header>
 }
 
 function CashierPage() {
