@@ -23,7 +23,15 @@ for (const profile of [
     ? await page.locator('.mobile-cart-trigger i').textContent()
     : await page.locator('.panel-heading p').textContent()
   if (!countText?.includes('3')) throw new Error(`${profile.name}: jumlah keranjang bukan 3 (${countText})`)
-  if (profile.isMobile) await page.getByRole('button', { name: /Lihat Pesanan/ }).click()
+  if (profile.isMobile) {
+    const floating = await page.locator('.mobile-cart-trigger').evaluate(element => {
+      const style = getComputedStyle(element)
+      const rect = element.getBoundingClientRect()
+      return { position: style.position, visible: rect.top >= 0 && rect.bottom <= innerHeight, bottom: Math.round(innerHeight - rect.bottom) }
+    })
+    if (floating.position !== 'fixed' || !floating.visible || floating.bottom < 50) throw new Error(`${profile.name}: floating checkout tidak berada di atas navigasi (${JSON.stringify(floating)})`)
+    await page.getByRole('button', { name: /Lihat Pesanan/ }).click()
+  }
   const total = await page.locator('.grand-total b').textContent()
   if (!total?.includes('35.000')) throw new Error(`${profile.name}: total salah (${total})`)
   await page.getByRole('button', { name: /^Bayar/ }).click()

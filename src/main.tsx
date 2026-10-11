@@ -16,8 +16,8 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
     navigator.serviceWorker.register('/sw.js').then(registration => registration.update()).catch(error => console.error('Service worker gagal didaftarkan:', error))
   })
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController && !sessionStorage.getItem('pwa-update-reload')) {
-      sessionStorage.setItem('pwa-update-reload', '1')
+    if (hadController && !sessionStorage.getItem('pwa-update-reload-v4')) {
+      sessionStorage.setItem('pwa-update-reload-v4', '1')
       window.location.reload()
     }
   })
