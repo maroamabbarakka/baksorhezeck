@@ -106,7 +106,7 @@ function CashierPage() {
   }
 
   return <div className="cashier-layout">
-    <section className={`catalog-panel ${cart.length ? 'has-mobile-cart' : ''}`}>
+    <section className="catalog-panel">
       <div className="catalog-tools"><label className="search"><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Cari menu atau SKU..." /></label><div className="chips">{categories.map(item => <button key={item} className={category === item ? 'active' : ''} onClick={() => setCategory(item)}>{item}</button>)}</div></div>
       <div className="product-grid">{products.map(product => <button className="product-card" key={product.id} onClick={() => add(product)}><img src={product.image} alt={product.name} /><span className="add-badge">+</span><div><small>{product.category}</small><strong>{product.name}</strong><b>{rupiah(product.price)}</b></div></button>)}</div>
       {!products.length && <Empty title="Menu tidak ditemukan" detail="Ubah kata pencarian atau kategori." />}
