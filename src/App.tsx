@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { usePosStore } from './context/PosStore'
 import { DEFAULT_PIN } from './data/seed'
 import { dateTime, localDateKey, roleLabel, rupiah } from './lib/format'
 import { calculateTotals, nextOrderNumber } from './lib/order'
+import { compressProductImage, dataUrlBytes, formatImageSize } from './lib/productImage'
 import { printReceipt } from './lib/receipt'
 import { printOrderBluetooth, testPrintBluetooth } from './printing/printer'
 import { disconnectPrinter, getSavedBinding, isBluetoothSupported, pairPrinter, printerStatus, restorePrinter } from './printing/webBluetooth'
@@ -96,7 +97,8 @@ function CashierPage() {
     if (paymentMethod === 'cash' && amountReceived < totals.total) return
     const order: Order = {
       id: crypto.randomUUID(), number: nextOrderNumber(data.orders.length), createdAt: new Date().toISOString(), cashierId: currentUser!.id, cashierName: currentUser!.name,
-      items: cart.map(item => ({ ...item })), ...totals, paymentMethod, amountReceived, change: Math.max(0, amountReceived - totals.total), status: 'paid',
+      // Avoid duplicating large Base64 photos into every transaction document.
+      items: cart.map(item => ({ ...item, image: '' })), ...totals, paymentMethod, amountReceived, change: Math.max(0, amountReceived - totals.total), status: 'paid',
     }
     saveOrder(order); setSuccess(order); reset()
     if (data.settings.autoPrint) {
@@ -142,15 +144,34 @@ function ProductsPage() {
   const { data, saveProduct, toggleProduct } = usePosStore()
   const [editing, setEditing] = useState<Product | null>(null)
   const [query, setQuery] = useState('')
+  const [imageBusy, setImageBusy] = useState(false)
+  const [imageError, setImageError] = useState('')
   const products = data.products.filter(product => `${product.name} ${product.sku}`.toLowerCase().includes(query.toLowerCase()))
+  const openEditor = (product: Product) => { setEditing({ ...product }); setImageError(''); setImageBusy(false) }
+  const closeEditor = () => { if (!imageBusy) { setEditing(null); setImageError('') } }
+  const chooseImage = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file || !editing) return
+    setImageBusy(true)
+    setImageError('')
+    try {
+      const image = await compressProductImage(file)
+      setEditing(current => current ? { ...current, image } : current)
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : 'Foto gagal diproses.')
+    } finally {
+      setImageBusy(false)
+    }
+  }
   const save = () => {
     if (!editing?.name.trim() || editing.price < 0) return
     saveProduct({ ...editing, id: editing.id || crypto.randomUUID(), sku: editing.sku.trim() || `BR-${Date.now().toString().slice(-5)}`, name: editing.name.trim(), price: Math.round(editing.price) })
     setEditing(null)
   }
-  return <section className="page-card"><div className="section-header"><div><h2>Menu & Harga</h2><p>Kelola produk yang tampil pada halaman kasir.</p></div><button className="button primary" onClick={() => setEditing({ ...blankProduct })}>+ Tambah menu</button></div><label className="search page-search"><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Cari menu atau SKU..." /></label>
-    <div className="manage-grid">{products.map(product => <article key={product.id} className={!product.active ? 'inactive' : ''}><img src={product.image} alt={product.name} /><div><small>{product.sku} · {product.category}</small><h3>{product.name}</h3><strong>{rupiah(product.price)}</strong><div><button className={`switch ${product.active ? 'on' : ''}`} onClick={() => toggleProduct(product.id)}>{product.active ? 'Aktif' : 'Nonaktif'}</button><button className="button secondary small" onClick={() => setEditing({ ...product })}>Edit</button></div></div></article>)}</div>
-    {editing && <Modal title={editing.id ? 'Edit menu' : 'Tambah menu'} close={() => setEditing(null)}><div className="form-grid"><label className="field"><span>Nama menu</span><input value={editing.name} onChange={event => setEditing({ ...editing, name: event.target.value })} /></label><label className="field"><span>SKU</span><input value={editing.sku} onChange={event => setEditing({ ...editing, sku: event.target.value.toUpperCase() })} placeholder="Otomatis" /></label><label className="field"><span>Kategori</span><input value={editing.category} onChange={event => setEditing({ ...editing, category: event.target.value })} /></label><label className="field"><span>Harga</span><input type="number" min="0" value={editing.price || ''} onChange={event => setEditing({ ...editing, price: Number(event.target.value) || 0 })} /></label><label className="field span-2"><span>Path gambar</span><input value={editing.image} onChange={event => setEditing({ ...editing, image: event.target.value })} /></label></div><button className="button primary full" disabled={!editing.name.trim()} onClick={save}>Simpan menu</button></Modal>}
+  return <section className="page-card"><div className="section-header"><div><h2>Menu & Harga</h2><p>Kelola produk yang tampil pada halaman kasir.</p></div><button className="button primary" onClick={() => openEditor({ ...blankProduct })}>+ Tambah menu</button></div><label className="search page-search"><span>⌕</span><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Cari menu atau SKU..." /></label>
+    <div className="manage-grid">{products.map(product => <article key={product.id} className={!product.active ? 'inactive' : ''}><img src={product.image} alt={product.name} /><div><small>{product.sku} · {product.category}</small><h3>{product.name}</h3><strong>{rupiah(product.price)}</strong><div><button className={`switch ${product.active ? 'on' : ''}`} onClick={() => toggleProduct(product.id)}>{product.active ? 'Aktif' : 'Nonaktif'}</button><button className="button secondary small" onClick={() => openEditor(product)}>Edit</button></div></div></article>)}</div>
+    {editing && <Modal title={editing.id ? 'Edit menu' : 'Tambah menu'} close={closeEditor}><div className="form-grid"><label className="field"><span>Nama menu</span><input value={editing.name} onChange={event => setEditing({ ...editing, name: event.target.value })} /></label><label className="field"><span>SKU</span><input value={editing.sku} onChange={event => setEditing({ ...editing, sku: event.target.value.toUpperCase() })} placeholder="Otomatis" /></label><label className="field"><span>Kategori</span><input value={editing.category} onChange={event => setEditing({ ...editing, category: event.target.value })} /></label><label className="field"><span>Harga</span><input type="number" min="0" value={editing.price || ''} onChange={event => setEditing({ ...editing, price: Number(event.target.value) || 0 })} /></label><div className="image-field span-2"><span>Foto menu</span><div className="image-picker"><img src={editing.image} alt="Preview foto menu" /><div><label className={`button secondary image-button ${imageBusy ? 'disabled' : ''}`}>{imageBusy ? 'Mengompresi...' : editing.image.startsWith('data:') ? 'Ganti foto' : 'Pilih foto'}<input type="file" accept="image/jpeg,image/png,image/webp" disabled={imageBusy} onChange={chooseImage} /></label>{editing.image.startsWith('data:') && <button className="button ghost small" disabled={imageBusy} onClick={() => setEditing({ ...editing, image: blankProduct.image })}>Hapus foto</button>}<small>JPG, PNG, atau WebP · maks. 15 MB. Otomatis dikompresi hingga 960 px dan 300 KB.</small>{editing.image.startsWith('data:') && <small className="image-success">Siap disimpan · {formatImageSize(dataUrlBytes(editing.image))} Base64</small>}</div></div>{imageError && <p className="form-error" role="alert">{imageError}</p>}</div></div><button className="button primary full" disabled={!editing.name.trim() || imageBusy} onClick={save}>{imageBusy ? 'Memproses foto...' : 'Simpan menu'}</button></Modal>}
   </section>
 }
 
